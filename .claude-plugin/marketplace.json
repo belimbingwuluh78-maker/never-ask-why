@@ -1,0 +1,13 @@
+{
+  "name": "never-ask-why",
+  "description": "Never Ask Why plugin for Claude Code",
+  "owner": { "name": "belimbingwuluh78-maker" },
+  "plugins": [
+    {
+      "name": "never-ask-why",
+      "source": "./",
+      "description": "Execute instructions immediately: never ask why, no alternatives, minimal output.",
+      "version": "0.2.0"
+    }
+  ]
+}

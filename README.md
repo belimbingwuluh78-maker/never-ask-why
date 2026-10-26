@@ -1,54 +1,119 @@
 # Never Ask Why
 
-A skill for **Claude Code** and **OpenAI Codex** that makes the agent execute your instruction immediately: no "why do you want this?", no plan discussion, no alternatives, no long recap. Saves tokens, saves time.
+A skill and plugin for **Claude Code** and **OpenAI Codex** that makes the agent execute your instruction immediately: no "why do you want this?", no plan discussion, no alternatives, no long recap. Saves tokens, saves time.
+
+[Bahasa Indonesia di bawah](#bahasa-indonesia)
 
 ## Install
 
-### Claude Code
+### Claude Code, as a plugin (recommended)
+
+The plugin adds the skill **and** a `UserPromptSubmit` hook that reminds the agent on every prompt, so it cannot drift back to long answers.
+
+```
+/plugin install never-ask-why --marketplace belimbingwuluh78-maker/never-ask-why
+```
+
+Or in two steps:
+
+```
+/plugin marketplace add belimbingwuluh78-maker/never-ask-why
+/plugin install never-ask-why@never-ask-why
+```
+
+### Claude Code and Codex, as a plain skill
+
+One command installs the skill into `~/.claude/skills`, `~/.codex/skills` and `~/.agents/skills`:
 
 ```bash
-git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git
-cp -r never-ask-why/skills/never-ask-why ~/.claude/skills/
+git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git && sh never-ask-why/install.sh
 ```
 
-Windows (PowerShell):
+Windows PowerShell:
 
 ```powershell
-git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git
-Copy-Item -Recurse never-ask-why\skills\never-ask-why "$HOME\.claude\skills\"
+git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git; .\never-ask-why\install.ps1
 ```
 
-Then in Claude Code type `/never-ask-why`, or just say "never ask why".
+Then:
 
-### Codex
-
-Codex reads skills from `~/.codex/skills/`:
-
-```bash
-cp -r never-ask-why/skills/never-ask-why ~/.codex/skills/
-```
-
-```powershell
-Copy-Item -Recurse never-ask-why\skills\never-ask-why "$HOME\.codex\skills\"
-```
-
-Then mention the skill in Codex: `$never-ask-why` or "use never-ask-why".
+- Claude Code: type `/never-ask-why`, or say "never ask why".
+- Codex: type `$never-ask-why`, or say "use never-ask-why". Codex also picks it up when your prompt matches the description.
 
 ### Project-level install
 
-Drop the folder into `.claude/skills/never-ask-why/` (Claude Code) or `.codex/skills/never-ask-why/` (Codex) inside your repo so teammates get it too.
+Install either the plugin or the plain skill, not both, or Claude Code sees the skill twice.
+
+Copy `skills/never-ask-why/` into `.claude/skills/` (Claude Code) or `.codex/skills/` (Codex) inside your repo so teammates get it too.
+
+## Levels
+
+| Level | Output |
+|-------|--------|
+| `lite` | Result first, then up to 5 lines of prose. |
+| `full` | Result first, max 3 lines of prose. Default. |
+| `ultra` | Code, diff, path or command output only. Zero prose unless something failed. |
+
+Switch with `/never-ask-why ultra` or just say the word.
 
 ## Turn it off
 
-Say `stop never ask why` or `normal mode`.
+Say `stop never ask why` or `normal mode`. Plugin users: `/plugin disable never-ask-why` stops the hook.
 
-## What it does
+## What changes
 
-- Executes the instruction without asking for motive or confirmation on reversible work.
-- Picks a reasonable default on ambiguity instead of asking.
-- Replies with the result first, max a few lines of prose.
-- Still asks one short question when the task truly cannot proceed (missing path, destructive action).
-- Still writes correct code, keeps validation, error handling and security, and reports failures honestly.
+Request: `add a retry to fetchUser`
+
+| | Typical reply | Chars | Approx. tokens |
+|---|---|---|---|
+| Without | "Sure! Before I do that, can I ask why you need retries here? There are a few approaches: a simple loop, exponential backoff, or a library like p-retry. Each has trade-offs... Let me know which you prefer and I'll implement it." Then a second round trip for your answer. | 226 + your reply | ~57 + a whole extra turn |
+| With (`full`) | `src/api/user.ts: fetchUser now retries 3x with 500ms backoff on network errors.` | 79 | ~20 |
+| With (`ultra`) | the diff only | 0 prose | 0 prose |
+
+Numbers are illustrative, counted from the two replies above at roughly 4 characters per token. The real saving is the round trip you no longer make.
+
+## What it still does
+
+- Writes correct code, keeps validation, error handling and security.
+- Reports failures honestly: a failing test is shown, not hidden.
+- Asks **one short line** before destructive or irreversible work: deleting data, `push --force`, dropping a database, spending money, sending or publishing anything.
+- Asks when a required input is missing: a path, a credential, a target environment.
+
+## Repo layout
+
+```
+.claude-plugin/plugin.json       plugin manifest
+.claude-plugin/marketplace.json  lets this repo act as its own marketplace
+hooks/hooks.json                 UserPromptSubmit reminder (Claude Code plugin only)
+skills/never-ask-why/SKILL.md    the skill, shared by Claude Code and Codex
+install.sh / install.ps1         copy the skill to user-level skill folders
+```
+
+## Bahasa Indonesia
+
+Skill dan plugin untuk **Claude Code** dan **OpenAI Codex** supaya agent langsung mengerjakan perintah: tidak tanya "kenapa", tidak bahas rencana, tidak tawarkan alternatif, tidak ada rekap panjang. Hemat token, hemat waktu.
+
+**Install sebagai plugin Claude Code** (disarankan, ada hook pengingat tiap prompt):
+
+```
+/plugin install never-ask-why --marketplace belimbingwuluh78-maker/never-ask-why
+```
+
+**Install sebagai skill biasa** (Claude Code dan Codex sekaligus):
+
+```bash
+git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git && sh never-ask-why/install.sh
+```
+
+PowerShell:
+
+```powershell
+git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git; .\never-ask-why\install.ps1
+```
+
+**Pakai:** di Claude Code ketik `/never-ask-why`, di Codex ketik `$never-ask-why`. Level: `lite`, `full` (default), `ultra`. Matikan dengan `stop never ask why` atau `normal mode`.
+
+**Yang tetap ditanya satu baris:** hapus data, `push --force`, drop database, keluar uang, kirim atau publish sesuatu, atau input wajib yang hilang (path, kredensial). Selain itu langsung dikerjakan.
 
 ## License
 

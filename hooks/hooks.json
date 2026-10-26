@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'NEVER ASK WHY is active: execute the instruction now. Do not ask why, do not propose alternatives, do not explain the plan. Reply with the result first and at most 3 lines of prose. Ask one short question only if the task is impossible without it or destructive.'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
