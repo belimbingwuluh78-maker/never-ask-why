@@ -1,11 +1,23 @@
 {
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -f .agent-map.md ]; then echo 'PROJECT MAP (.agent-map.md). Use it instead of exploring or re-reading files it already describes:'; cat .agent-map.md; fi",
+            "shell": "bash",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'NEVER ASK WHY is active: execute the instruction now. Do not ask why, do not propose alternatives, do not explain the plan. Reply with the result first and at most 3 lines of prose. Ask one short question only if the task is impossible without it or destructive.'",
+            "command": "echo 'NEVER ASK WHY is active: execute the instruction now. Do not ask why, do not propose alternatives, do not explain the plan. Reply with the result first and at most 3 lines of prose. Ask one short question only if the task is impossible without it or destructive. Do not re-read files already in context; use .agent-map.md instead of exploring.'",
             "timeout": 5
           }
         ]

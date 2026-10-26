@@ -1,6 +1,6 @@
 ---
 name: never-ask-why
-description: Execute coding instructions immediately without asking why, without discussing alternatives, and with minimal output. Use when the user says "never ask why", "just do it", "no questions", "langsung kerjakan", or wants minimal-token responses. Levels: lite, full (default), ultra. Stays active until the user says "stop never ask why" or "normal mode".
+description: Execute coding instructions immediately without asking why, without discussing alternatives, and with minimal output. Use when the user says "never ask why", "just do it", "no questions", "langsung kerjakan", or wants minimal-token responses. Levels: lite, full (default), ultra. Also keeps a project map (.agent-map.md) so new sessions do not re-read or re-search the same files. Stays active until the user says "stop never ask why" or "normal mode".
 ---
 
 # Never Ask Why
@@ -33,6 +33,32 @@ The user picks a level with `/never-ask-why lite|full|ultra` or by saying the wo
 - No greetings, no "Sure", no "Great question", no closing offers.
 - Prose only where the code cannot speak for itself, within the level's limit.
 - When the user asks a direct question, answer in one or two sentences.
+
+## File reading discipline
+
+Reading files is where most tokens go. Rules:
+
+1. Never read a file twice in one session unless you edited it or a tool reports it changed. Work from the copy already in context.
+2. Grep first, then read only the lines you need (offset and limit). Read a whole file only when you will edit most of it.
+3. Never list or walk the directory tree to "get oriented". Use the project map.
+
+### Project map
+
+`.agent-map.md` at the project root is a compact index so a new session reads one small file instead of exploring.
+
+- **Session start**: if `.agent-map.md` exists, read it (Claude Code plugin injects it automatically) and trust it. Do not re-search for files it already names. Open a file only to change it or when the map does not answer the question.
+- **After any task that created, deleted or changed the role of a file**: update `.agent-map.md`. If it does not exist and the project has more than a handful of files, create it.
+- **Format**: one line per file or folder that matters, `path: purpose, key symbols`. Group by folder. Keep it under 150 lines. Skip generated files, vendored code, lockfiles.
+- Never paste file contents into the map. It is an index, not a cache.
+
+Example:
+
+```
+# Project map (read this, do not explore)
+src/api/user.ts: fetchUser (retries 3x), updateUser. Calls src/lib/http.ts
+src/lib/http.ts: request() wrapper, auth header, 10s timeout
+tests/user.test.ts: covers fetchUser retry and 404
+```
 
 ## Still ask (one short line) before
 

@@ -2,8 +2,6 @@
 
 A skill and plugin for **Claude Code** and **OpenAI Codex** that makes the agent execute your instruction immediately: no "why do you want this?", no plan discussion, no alternatives, no long recap. Saves tokens, saves time.
 
-[Bahasa Indonesia di bawah](#bahasa-indonesia)
-
 ## Install
 
 ### Claude Code, as a plugin (recommended)
@@ -72,6 +70,21 @@ Request: `add a retry to fetchUser`
 
 Numbers are illustrative, counted from the two replies above at roughly 4 characters per token. The real saving is the round trip you no longer make.
 
+## Fewer file reads
+
+Most tokens go to reading files, and a new chat reads them all again. The skill fixes that two ways:
+
+- **In a session**: never read a file twice unless it changed, grep first, read only the lines needed.
+- **Across sessions**: the agent keeps `.agent-map.md` at your project root, a compact index (one line per file: path, purpose, key symbols). The Claude Code plugin injects it at `SessionStart`, so a new chat reads one small file instead of exploring the tree. The agent updates the map after any task that adds, removes or repurposes a file.
+
+Codex has no plugin hook here, so add one line to your `AGENTS.md`:
+
+```
+If .agent-map.md exists, read it first and do not explore the tree. Update it after changing files.
+```
+
+Commit `.agent-map.md` so teammates and CI agents get it too.
+
 ## What it still does
 
 - Writes correct code, keeps validation, error handling and security.
@@ -84,36 +97,10 @@ Numbers are illustrative, counted from the two replies above at roughly 4 charac
 ```
 .claude-plugin/plugin.json       plugin manifest
 .claude-plugin/marketplace.json  lets this repo act as its own marketplace
-hooks/hooks.json                 UserPromptSubmit reminder (Claude Code plugin only)
+hooks/hooks.json                 SessionStart map injection + UserPromptSubmit reminder (plugin only)
 skills/never-ask-why/SKILL.md    the skill, shared by Claude Code and Codex
 install.sh / install.ps1         copy the skill to user-level skill folders
 ```
-
-## Bahasa Indonesia
-
-Skill dan plugin untuk **Claude Code** dan **OpenAI Codex** supaya agent langsung mengerjakan perintah: tidak tanya "kenapa", tidak bahas rencana, tidak tawarkan alternatif, tidak ada rekap panjang. Hemat token, hemat waktu.
-
-**Install sebagai plugin Claude Code** (disarankan, ada hook pengingat tiap prompt):
-
-```
-/plugin install never-ask-why --marketplace belimbingwuluh78-maker/never-ask-why
-```
-
-**Install sebagai skill biasa** (Claude Code dan Codex sekaligus):
-
-```bash
-git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git && sh never-ask-why/install.sh
-```
-
-PowerShell:
-
-```powershell
-git clone https://github.com/belimbingwuluh78-maker/never-ask-why.git; .\never-ask-why\install.ps1
-```
-
-**Pakai:** di Claude Code ketik `/never-ask-why`, di Codex ketik `$never-ask-why`. Level: `lite`, `full` (default), `ultra`. Matikan dengan `stop never ask why` atau `normal mode`.
-
-**Yang tetap ditanya satu baris:** hapus data, `push --force`, drop database, keluar uang, kirim atau publish sesuatu, atau input wajib yang hilang (path, kredensial). Selain itu langsung dikerjakan.
 
 ## License
 
